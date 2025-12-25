@@ -2,7 +2,7 @@
 import numpy
 import sympy
 from scipy.integrate import odeint
-import Functions
+#import Functions
 
 # Define the variables and funcions used
 m1, m2, L1, L2, t, g = sympy.symbols('m1 m2 L1 L2 t g')
@@ -56,6 +56,17 @@ dz2dt = sympy.lambdify((m1, m2, L1, L2, t, g, theta1, theta2, theta1_dot, theta2
                        sols[theta2_ddot])
 dtheta2dt = sympy.lambdify(theta2_dot, theta2_dot)
 
+# Define state vector
+def dSdt(S, m1, m2, L1, L2, t, g):
+    theta1, z1, theta2, z2 = S
+    return[
+        dz1dt(m1, m2, L1, L2, t, g, theta1, theta2, z1, z2),
+        dtheta1dt(z1),
+        dz2dt(m1, m2, L1, L2, t, g, theta1, theta2, z1, z2),
+        dtheta2dt(z2)
+    ]
+
+
 # Solving ODEs
 m1 = 1
 m2 = 1
@@ -63,6 +74,7 @@ L1 = 1
 L2 = 1
 t = numpy.linspace(0, 30, 1000)
 g = 9.8
-dSdt = Functions.dSdt
 
-ans = odeint(dSdt, y0=[1, 1, 1, 1], t = t, agrs = (m1, m2, L1, L2, g))
+ans = odeint(dSdt, y0=[1, -1, 3, 2], t = t, args = (m1, m2, L1, L2, g))
+
+print(ans.T)
