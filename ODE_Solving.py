@@ -3,7 +3,17 @@ import numpy as np
 import sympy as smp
 from scipy.integrate import odeint
 #import Functions
-import matplotlib.pyplot
+import matplotlib.pyplot as plt
+
+# Define state vector
+def dSdt(S, t, m1, m2, L1, L2, g):
+    theta1, z1, theta2, z2 = S
+    return[
+        dtheta1dt(z1),
+        dz1dt(t, m1, m2, L1, L2, g, theta1, theta2, z1, z2),
+        dtheta2dt(z2),
+        dz2dt(t, m1, m2, L1, L2, g, theta1, theta2, z1, z2)
+    ]
 
 # Define the variables and funcions used
 t, m1, m2, L1, L2, g = smp.symbols('t m1 m2 L1 L2 g')
@@ -59,27 +69,19 @@ dz2dt = smp.lambdify((t, m1, m2, L1, L2, g, theta1, theta2, theta1_dot, theta2_d
                        sols[theta2_ddot])
 dtheta2dt = smp.lambdify(theta2_dot, theta2_dot)
 
-# Define state vector
-def dSdt(S, t, m1, m2, L1, L2, g):
-    theta1, z1, theta2, z2 = S
-    return[
-        dtheta1dt(z1),
-        dz1dt(t, m1, m2, L1, L2, g, theta1, theta2, z1, z2),
-        dtheta2dt(z2),
-        dz2dt(t, m1, m2, L1, L2, g, theta1, theta2, z1, z2)
-    ]
-
-
 # Solving ODEs
-m1 = 2
+m1 = 1
 m2 = 1
-L1 = 2
+L1 = 1
 L2 = 1
-t = np.linspace(0, 40, 1001)
+t = np.linspace(0, 60, 1500)
 g = 9.81
 
-ans = odeint(dSdt, y0=[1, -3, -1, 5], t=t, args=(m1, m2, L1, L2, g))
+ans = odeint(dSdt, y0=[1, 1, 1, 1], t=t, args=(m1, m2, L1, L2, g))
 
 # Functions theta1 and theta2 in terms of time
-theta1 = ans.T[0]
-theta2 = ans.T[2]
+#theta1 = ans.T[0]
+#theta2 = ans.T[2]
+
+theta1 = 0.5
+theta2 = 1
