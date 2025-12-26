@@ -63,7 +63,7 @@ m1 = 1
 m2 = 1
 L1 = 1
 L2 = 1
-t = np.linspace(0, 60, 1500)
+t = np.linspace(0, 30, 500)
 g = 9.81
 
 # Define state vector
@@ -76,7 +76,7 @@ def dSdt(S, t, m1, m2, L1, L2, g):
         dz2dt(t, m1, m2, L1, L2, g, theta1, theta2, z1, z2)
     ]
 
-ans = odeint(dSdt, y0=[1, 1, 1, 1], t=t, args=(m1, m2, L1, L2, g))
+ans = odeint(dSdt, y0=[2, 2, 2.5, 3], t=t, args=(m1, m2, L1, L2, g))
 
 # Functions theta1 and theta2 in terms of time
 theta1_pl = ans.T[0]
@@ -84,7 +84,10 @@ theta2_pl = ans.T[2]
 
 # Show pendelum for particular state
 fig = plt.figure()
+fig.set_facecolor('k')
+
 ax = fig.add_subplot(aspect = 'equal')
+ax.set_facecolor('k')
 ax.set_xlim(-2.25, 2.25)
 ax.set_ylim(-2.25, 2.25)
 ax.set_xticks([])
@@ -93,18 +96,17 @@ ax.set_yticks([])
 theta1 = theta1_pl[0]
 theta2 = theta2_pl[0]
 
-x1 = L1 * smp.sin(theta1)
-y1 = - L1 * smp.cos(theta1)
-x2 = x1 + L2 * smp.sin(theta2)
-y2 = y1 - L2 * smp.cos(theta2)
+origin = ax.add_patch(plt.Circle((0, 0), 0.1, color='w', zorder=3))
+mass1 = ax.add_patch(plt.Circle((0, 0), 0.1*m1, color='y', zorder=3))
+mass2 = ax.add_patch(plt.Circle((0, 0), 0.1*m2, color='m', zorder=3))
+stick1 = ax.add_line(Line2D((0, 0), (0, 0), color='y', lw=1, zorder=2))
+stick2 = ax.add_line(Line2D((0, 0), (0, 0), color='m', lw=1, zorder=2))
 
-origin = ax.add_patch(plt.Circle((0, 0), 0.1, color='black'))
-mass1 = ax.add_patch(plt.Circle((x1, y1), 0.1, color='black'))
-mass2 = ax.add_patch(plt.Circle((x2, y2), 0.1, color='black'))
-stick1 = ax.add_line(Line2D((0, x1), (0, y1), color='black', linewidth=2))
-stick2 = ax.add_line(Line2D((x1, x2), (y1, y2), color='black', linewidth=2))
+x1_data, y1_data = [], []
+x2_data, y2_data = [], []
 
-#plt.show()
+m1_trace = ax.add_line(Line2D((0, 0), (0, 0), color='y', ls='--', lw=0.5, zorder=1))
+m2_trace = ax.add_line(Line2D((0, 0), (0, 0), color='m', lw=0.5, zorder=1))
 
 # Animate
 def animate(i):
@@ -121,6 +123,16 @@ def animate(i):
     stick1.set_data((0,x1), (0, y1))
     stick2.set_data((x1,x2), (y1, y2))
 
-ani = animation.FuncAnimation(fig, animate, frames=1000)
+    x1_data.append(x1)
+    y1_data.append(y1)
+    x2_data.append(x2)
+    y2_data.append(y2)
+
+    m1_trace.set_data((x1_data, y1_data))
+    m2_trace.set_data((x2_data, y2_data))
+
+    return m1_trace, m2_trace
+
+ani = animation.FuncAnimation(fig, animate, frames=500) #for real time use frames=750
 ani.save("double_pen.gif", writer=animation.PillowWriter(fps=25))
 print('done')
