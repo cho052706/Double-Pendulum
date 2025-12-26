@@ -6,7 +6,7 @@ from scipy.integrate import odeint
 import matplotlib.pyplot
 
 # Define the variables and funcions used
-m1, m2, L1, L2, t, g = smp.symbols('m1 m2 L1 L2 t g')
+t, m1, m2, L1, L2, g = smp.symbols('t m1 m2 L1 L2 g')
 
 theta1, theta2 = smp.symbols('theta1, theta2', cls=smp.Function)
 theta1 = theta1(t)
@@ -38,35 +38,35 @@ V1 = m1 * g * y1
 V2 = m2 * g * y2
 V = V1 + V2
 
-L = smp.simplify(T - V)
+L = T - V
 
 # Lagrange equations of motion
 #LE1 = smp.simplify(theta1_dot - theta1_ddot)
 #LE2 = smp.simplify(theta2_dot - theta2_ddot)
-LE1 = smp.simplify(smp.diff(L, theta1) - smp.diff(smp.diff(L, theta1_dot), t))
-LE2 = smp.simplify(smp.diff(L, theta2) - smp.diff(smp.diff(L, theta2_dot), t))
+LE1 = smp.diff(L, theta1) - smp.diff(smp.diff(L, theta1_dot), t)#.splimify()
+LE2 = smp.diff(L, theta2) - smp.diff(smp.diff(L, theta2_dot), t)#.simplify()
 
 sols = smp.solve([LE1, LE2], [theta1_ddot, theta2_ddot])
-sols[theta1_ddot] = smp.simplify(sols[theta1_ddot])
-sols[theta2_ddot] = smp.simplify(sols[theta2_ddot])
+#sols[theta1_ddot] = smp.simplify(sols[theta1_ddot])
+#sols[theta2_ddot] = smp.simplify(sols[theta2_ddot])
 
 # Turning into first order ODEs
-dz1dt = smp.lambdify((m1, m2, L1, L2, t, g, theta1, theta2, theta1_dot, theta2_dot), 
+dz1dt = smp.lambdify((t, m1, m2, L1, L2, g, theta1, theta2, theta1_dot, theta2_dot), 
                        sols[theta1_ddot])
 dtheta1dt = smp.lambdify(theta1_dot, theta1_dot)
 
-dz2dt = smp.lambdify((m1, m2, L1, L2, t, g, theta1, theta2, theta1_dot, theta2_dot), 
+dz2dt = smp.lambdify((t, m1, m2, L1, L2, g, theta1, theta2, theta1_dot, theta2_dot), 
                        sols[theta2_ddot])
 dtheta2dt = smp.lambdify(theta2_dot, theta2_dot)
 
 # Define state vector
-def dSdt(S, m1, m2, L1, L2, t, g):
+def dSdt(S, t, m1, m2, L1, L2, g):
     theta1, z1, theta2, z2 = S
     return[
-        dz1dt(m1, m2, L1, L2, t, g, theta1, theta2, z1, z2),
         dtheta1dt(z1),
-        dz2dt(m1, m2, L1, L2, t, g, theta1, theta2, z1, z2),
-        dtheta2dt(z2)
+        dz1dt(t, m1, m2, L1, L2, g, theta1, theta2, z1, z2),
+        dtheta2dt(z2),
+        dz2dt(t, m1, m2, L1, L2, g, theta1, theta2, z1, z2)
     ]
 
 
@@ -78,11 +78,8 @@ L2 = 1
 t = np.linspace(0, 40, 1001)
 g = 9.81
 
-ans = odeint(dSdt, y0=[1, -3, -1, 5], t = t, args = (m1, m2, L1, L2, g))
+ans = odeint(dSdt, y0=[1, -3, -1, 5], t=t, args=(m1, m2, L1, L2, g))
 
-print(ans)
-#theta1 = ans.T[0]
-#theta2 = ans.T[2]
-
-#matplotlib.pyplot.plot(t, theta2)
-#matplotlib.pyplot.show()
+# Functions theta1 and theta2 in terms of time
+theta1 = ans.T[0]
+theta2 = ans.T[2]
