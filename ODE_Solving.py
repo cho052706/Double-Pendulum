@@ -1,19 +1,9 @@
-# Imports for math
 import numpy as np
 import sympy as smp
 from scipy.integrate import odeint
-#import Functions
 import matplotlib.pyplot as plt
-
-# Define state vector
-def dSdt(S, t, m1, m2, L1, L2, g):
-    theta1, z1, theta2, z2 = S
-    return[
-        dtheta1dt(z1),
-        dz1dt(t, m1, m2, L1, L2, g, theta1, theta2, z1, z2),
-        dtheta2dt(z2),
-        dz2dt(t, m1, m2, L1, L2, g, theta1, theta2, z1, z2)
-    ]
+from matplotlib.lines import Line2D
+import matplotlib.animation as animation
 
 # Define the variables and funcions used
 t, m1, m2, L1, L2, g = smp.symbols('t m1 m2 L1 L2 g')
@@ -51,8 +41,7 @@ V = V1 + V2
 L = T - V
 
 # Lagrange equations of motion
-#LE1 = smp.simplify(theta1_dot - theta1_ddot)
-#LE2 = smp.simplify(theta2_dot - theta2_ddot)
+
 LE1 = smp.diff(L, theta1) - smp.diff(smp.diff(L, theta1_dot), t)#.splimify()
 LE2 = smp.diff(L, theta2) - smp.diff(smp.diff(L, theta2_dot), t)#.simplify()
 
@@ -77,11 +66,61 @@ L2 = 1
 t = np.linspace(0, 60, 1500)
 g = 9.81
 
+# Define state vector
+def dSdt(S, t, m1, m2, L1, L2, g):
+    theta1, z1, theta2, z2 = S
+    return[
+        dtheta1dt(z1),
+        dz1dt(t, m1, m2, L1, L2, g, theta1, theta2, z1, z2),
+        dtheta2dt(z2),
+        dz2dt(t, m1, m2, L1, L2, g, theta1, theta2, z1, z2)
+    ]
+
 ans = odeint(dSdt, y0=[1, 1, 1, 1], t=t, args=(m1, m2, L1, L2, g))
 
 # Functions theta1 and theta2 in terms of time
-#theta1 = ans.T[0]
-#theta2 = ans.T[2]
+theta1_pl = ans.T[0]
+theta2_pl = ans.T[2]
 
-theta1 = 0.5
-theta2 = 1
+# Show pendelum for particular state
+fig = plt.figure()
+ax = fig.add_subplot(aspect = 'equal')
+ax.set_xlim(-2.25, 2.25)
+ax.set_ylim(-2.25, 2.25)
+ax.set_xticks([])
+ax.set_yticks([])
+
+theta1 = theta1_pl[0]
+theta2 = theta2_pl[0]
+
+x1 = L1 * smp.sin(theta1)
+y1 = - L1 * smp.cos(theta1)
+x2 = x1 + L2 * smp.sin(theta2)
+y2 = y1 - L2 * smp.cos(theta2)
+
+origin = ax.add_patch(plt.Circle((0, 0), 0.1, color='black'))
+mass1 = ax.add_patch(plt.Circle((x1, y1), 0.1, color='black'))
+mass2 = ax.add_patch(plt.Circle((x2, y2), 0.1, color='black'))
+stick1 = ax.add_line(Line2D((0, x1), (0, y1), color='black', linewidth=2))
+stick2 = ax.add_line(Line2D((x1, x2), (y1, y2), color='black', linewidth=2))
+
+#plt.show()
+
+# Animate
+def animate(i):
+    theta1 = theta1_pl[i]
+    theta2 = theta2_pl[i]
+
+    x1 = L1 * smp.sin(theta1)
+    y1 = - L1 * smp.cos(theta1)
+    x2 = x1 + L2 * smp.sin(theta2)
+    y2 = y1 - L2 * smp.cos(theta2)
+
+    mass1.set_center((x1, y1))
+    mass2.set_center((x2, y2))
+    stick1.set_data((0,x1), (0, y1))
+    stick2.set_data((x1,x2), (y1, y2))
+
+ani = animation.FuncAnimation(fig, animate, frames=1000)
+ani.save("double_pen.gif", writer=animation.PillowWriter(fps=25))
+print('done')
