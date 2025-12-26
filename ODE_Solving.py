@@ -1,32 +1,33 @@
 # Imports for math
-import numpy
-import sympy
+import numpy as np
+import sympy as smp
 from scipy.integrate import odeint
 #import Functions
+import matplotlib.pyplot
 
 # Define the variables and funcions used
-m1, m2, L1, L2, t, g = sympy.symbols('m1 m2 L1 L2 t g')
+m1, m2, L1, L2, t, g = smp.symbols('m1 m2 L1 L2 t g')
 
-theta1, theta2 = sympy.symbols('theta1, theta2', cls=sympy.Function)
+theta1, theta2 = smp.symbols('theta1, theta2', cls=smp.Function)
 theta1 = theta1(t)
 theta2 = theta2(t)
 
-x1 = L1 * sympy.sin(theta1)
-y1 = - L1 * sympy.cos(theta1)
-x2 = x1 + L2 * sympy.sin(theta2)
-y2 = y1 - L2 * sympy.cos(theta2)
+x1 = L1 * smp.sin(theta1)
+y1 = - L1 * smp.cos(theta1)
+x2 = x1 + L2 * smp.sin(theta2)
+y2 = y1 - L2 * smp.cos(theta2)
 
 
 # Derivatives
-theta1_dot = sympy.diff(theta1, t)
-theta2_dot = sympy.diff(theta2, t)
-theta1_ddot = sympy.diff(theta1_dot, t)
-theta2_ddot = sympy.diff(theta2_dot, t)
+theta1_dot = smp.diff(theta1, t)
+theta2_dot = smp.diff(theta2, t)
+theta1_ddot = smp.diff(theta1_dot, t)
+theta2_ddot = smp.diff(theta2_dot, t)
 
-x1_dot = sympy.diff(x1, t)
-x2_dot = sympy.diff(x2, t)
-y1_dot = sympy.diff(y1, t)
-y2_dot = sympy.diff(y2, t)
+x1_dot = smp.diff(x1, t)
+x2_dot = smp.diff(x2, t)
+y1_dot = smp.diff(y1, t)
+y2_dot = smp.diff(y2, t)
 
 # Lagrangian
 T1 = 1/2 * m1 * (x1_dot**2 + y1_dot**2)
@@ -37,24 +38,26 @@ V1 = m1 * g * y1
 V2 = m2 * g * y2
 V = V1 + V2
 
-L = sympy.simplify(T - V)
+L = smp.simplify(T - V)
 
 # Lagrange equations of motion
-LE1 = sympy.simplify(theta1_dot - theta1_ddot)
-LE2 = sympy.simplify(theta2_dot - theta2_ddot)
+#LE1 = smp.simplify(theta1_dot - theta1_ddot)
+#LE2 = smp.simplify(theta2_dot - theta2_ddot)
+LE1 = smp.simplify(smp.diff(L, theta1) - smp.diff(smp.diff(L, theta1_dot), t))
+LE2 = smp.simplify(smp.diff(L, theta2) - smp.diff(smp.diff(L, theta2_dot), t))
 
-sols = sympy.solve([LE1, LE2], [theta1_ddot, theta2_ddot])
-sols[theta1_ddot] = sympy.simplify(sols[theta1_ddot])
-sols[theta2_ddot] = sympy.simplify(sols[theta2_ddot])
+sols = smp.solve([LE1, LE2], [theta1_ddot, theta2_ddot])
+sols[theta1_ddot] = smp.simplify(sols[theta1_ddot])
+sols[theta2_ddot] = smp.simplify(sols[theta2_ddot])
 
 # Turning into first order ODEs
-dz1dt = sympy.lambdify((m1, m2, L1, L2, t, g, theta1, theta2, theta1_dot, theta2_dot), 
+dz1dt = smp.lambdify((m1, m2, L1, L2, t, g, theta1, theta2, theta1_dot, theta2_dot), 
                        sols[theta1_ddot])
-dtheta1dt = sympy.lambdify(theta1_dot, theta1_dot)
+dtheta1dt = smp.lambdify(theta1_dot, theta1_dot)
 
-dz2dt = sympy.lambdify((m1, m2, L1, L2, t, g, theta1, theta2, theta1_dot, theta2_dot), 
+dz2dt = smp.lambdify((m1, m2, L1, L2, t, g, theta1, theta2, theta1_dot, theta2_dot), 
                        sols[theta2_ddot])
-dtheta2dt = sympy.lambdify(theta2_dot, theta2_dot)
+dtheta2dt = smp.lambdify(theta2_dot, theta2_dot)
 
 # Define state vector
 def dSdt(S, m1, m2, L1, L2, t, g):
@@ -68,13 +71,18 @@ def dSdt(S, m1, m2, L1, L2, t, g):
 
 
 # Solving ODEs
-m1 = 1
+m1 = 2
 m2 = 1
-L1 = 1
+L1 = 2
 L2 = 1
-t = numpy.linspace(0, 30, 1000)
-g = 9.8
+t = np.linspace(0, 40, 1001)
+g = 9.81
 
-ans = odeint(dSdt, y0=[1, -1, 3, 2], t = t, args = (m1, m2, L1, L2, g))
+ans = odeint(dSdt, y0=[1, -3, -1, 5], t = t, args = (m1, m2, L1, L2, g))
 
-print(ans.T)
+print(ans)
+#theta1 = ans.T[0]
+#theta2 = ans.T[2]
+
+#matplotlib.pyplot.plot(t, theta2)
+#matplotlib.pyplot.show()
