@@ -1,11 +1,12 @@
 import numpy as np
 import sympy as smp
-#import matplotlib.pyplot as plt
-#import matplotlib.animation
-#from matplotlib.lines import Line2D
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib.lines import Line2D
 from scipy.integrate import odeint
 
 t, L1, L2 = smp.symbols('t L1 L2')
+N = 50
 
 # Making a pendulum
 class DoublePendulum():
@@ -84,7 +85,6 @@ class DoublePendulum():
 
         self.theta1_data = ans.T[0]                     # (theta1) and (theta2) fuctions of time
         self.theta2_data = ans.T[2]
-        print('asdkjfnkasdfmnsa')
 
     def shapes(self, mass1, mass2, stick1, stick2):
         self.mass1 = mass1
@@ -106,8 +106,33 @@ class DoublePendulum():
         self.stick1.set_data((0,x1), (0, y1))
         self.stick2.set_data((x1,x2), (y1, y2))
 
-pends = DoublePendulum(y0 = [2, -2, 1.5, 2])
-pends.pend_ODE_solver(t=t)
-print('hello')
+pends = (DoublePendulum(y0 = [2, -2, 1.5, 2]) for 1 in range(N))
+for pendulum in pends:
+    pendulum.pend_ODE_solver(t=t)
 
 
+fig = plt.figure()
+fig.set_facecolor('k')
+
+ax = fig.add_subplot(aspect = 'equal')
+ax.set_facecolor('k')
+ax.set_xticks([])
+ax.set_yticks([])
+ax.set_xlim(-2.25, 2.25)                   # Edit (ax) size here
+ax.set_ylim(-2.25, 2.25)
+
+origin = ax.add_patch(plt.Circle((0, 0), 0.1, color='w', zorder=3))
+
+for i,pendulum in enumerate(pends):
+    mass1 = ax.add_patch(plt.Circle((0, 0), 0.1*m1, color='y', zorder=3))
+    mass2 = ax.add_patch(plt.Circle((0, 0), 0.1*m2, color='m', zorder=3))
+    stick1 = ax.add_line(Line2D((0, 0), (0, 0), color='y', lw=1, zorder=2))
+    stick2 = ax.add_line(Line2D((0, 0), (0, 0), color='m', lw=1, zorder=2))
+    pendulum.shapes(mass1, mass2, stick1, stick2)
+
+def animate(i):
+    for pendulum in pends:
+        pendulum.updating_shapes(i)
+
+ani = animation.FuncAnimation(fig, animate, frames=750) 
+ani.save("double_pen.gif", writer=animation.PillowWriter(fps=25))
