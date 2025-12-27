@@ -1,19 +1,21 @@
 import numpy as np
 import sympy as smp
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
+import matplotlib.animation
 from matplotlib.lines import Line2D
 from scipy.integrate import odeint
+from matplotlib.colors import hsv_to_rgb
 
-t, L1, L2 = smp.symbols('t L1 L2')
-N = 50
+L1 = 1
+L2 = 1
+N = 2
 
 # Making a pendulum
 class DoublePendulum():
     def __init__(self, y0):
         self.y0 = y0
 
-    def pend_ODE_solver (self, t=t):
+    def pend_ODE_solver (self):
         t, m1, m2, L1, L2, g = smp.symbols('t m1 m2 L1 L2 g')
 
         theta1, theta2 = smp.symbols('theta1, theta2', cls=smp.Function)
@@ -69,6 +71,9 @@ class DoublePendulum():
         t = np.linspace(0, 30, 750)               # For real time use 750 (same for the
         g = 9.81                                  # frames on 129)
 
+        self.m1 = m1
+        self.m2 = m2
+
         ## Define state vector ##
         def dSdt(S, t, m1, m2, L1, L2, g):
             theta1, z1, theta2, z2 = S
@@ -80,7 +85,7 @@ class DoublePendulum():
             ]
 
         ## ODE solution w/ state function ##
-        ans = odeint(dSdt, y0=[2, -2, 1.5, 2],     # (y0) represents the initial S state vector
+        ans = odeint(dSdt, self.y0,     # (y0) represents the initial S state vector
                     t=t, args=(m1, m2, L1, L2, g))
 
         self.theta1_data = ans.T[0]                     # (theta1) and (theta2) fuctions of time
@@ -93,8 +98,8 @@ class DoublePendulum():
         self.stick2 = stick2
 
     def updating_shapes(self, i):
-        theta1 = self.theta1[i]
-        theta2 = self.theta2[i]
+        theta1 = self.theta1_data[i]
+        theta2 = self.theta2_data[i]
 
         x1 = L1 * smp.sin(theta1)
         y1 = - L1 * smp.cos(theta1)
@@ -106,33 +111,43 @@ class DoublePendulum():
         self.stick1.set_data((0,x1), (0, y1))
         self.stick2.set_data((x1,x2), (y1, y2))
 
-pends = (DoublePendulum(y0 = [2, -2, 1.5, 2]) for 1 in range(N))
+pends = [DoublePendulum(y0=[np.pi/6, 1, np.pi/4+5*i/N, 1]) for i in range(N)]
 for pendulum in pends:
-    pendulum.pend_ODE_solver(t=t)
+    pendulum.pend_ODE_solver()
 
 
 fig = plt.figure()
-fig.set_facecolor('k')
-
 ax = fig.add_subplot(aspect = 'equal')
-ax.set_facecolor('k')
+ax.figure.set_size_inches(1920/100, 1080/100)
+ax.figure.set_dpi(100)
+ax.figure.set_facecolor('k')
+ax.figure.set_edgecolor('k')
 ax.set_xticks([])
 ax.set_yticks([])
-ax.set_xlim(-2.25, 2.25)                   # Edit (ax) size here
-ax.set_ylim(-2.25, 2.25)
+ax.set_xlim(-19.2/7, 19.2/7)                   # Edit (ax) size here
+ax.set_ylim(-10.8/7-0.8, 10.8/8-0.8)
 
 origin = ax.add_patch(plt.Circle((0, 0), 0.1, color='w', zorder=3))
-
-for i,pendulum in enumerate(pends):
-    mass1 = ax.add_patch(plt.Circle((0, 0), 0.1*m1, color='y', zorder=3))
-    mass2 = ax.add_patch(plt.Circle((0, 0), 0.1*m2, color='m', zorder=3))
-    stick1 = ax.add_line(Line2D((0, 0), (0, 0), color='y', lw=1, zorder=2))
-    stick2 = ax.add_line(Line2D((0, 0), (0, 0), color='m', lw=1, zorder=2))
-    pendulum.shapes(mass1, mass2, stick1, stick2)
 
 def animate(i):
     for pendulum in pends:
         pendulum.updating_shapes(i)
 
-ani = animation.FuncAnimation(fig, animate, frames=750) 
-ani.save("double_pen.gif", writer=animation.PillowWriter(fps=25))
+for i,pendulum in enumerate(pends):
+    blue = hsv_to_rgb(((150+90*i/N)/360,1,1))
+
+    mass1 = ax.add_patch(plt.Circle((0, 0), 0.1, color=blue, zorder=3))
+    mass2 = ax.add_patch(plt.Circle((0, 0), 0.1, color=blue, zorder=3))
+    stick1 = ax.add_line(Line2D((0, 0), (0, 0), color=blue, lw=1, zorder=2))
+    stick2 = ax.add_line(Line2D((0, 0), (0, 0), color=blue, lw=1, zorder=2))
+    pendulum.shapes(mass1, mass2, stick1, stick2)
+
+
+plt.rcParams['animation.ffmpeg_path'] = 'C:\\Program Files\\ffmpeg\\ffmpeg-8.0.1-essentials_build\\ffmpeg-8.0.1-essentials_build\\bin\\ffmpeg.exe'
+
+ani = matplotlib.animation.FuncAnimation(fig, animate, frames=750, interval = 100)
+#writer = matplotlib.animation.FFMpegWriter(fps=25)
+writer = matplotlib.animation.FFMpegWriter(fps=25, metadata=dict(artist='Cedric Ho'), bitrate=1800)
+#ani.save('many.mp4', writer='ffmpeg', fps=25.0)
+ani.save("many.mp4", writer=writer)
+print('done')

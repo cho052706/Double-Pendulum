@@ -131,6 +131,8 @@ def animate(i):
     m1_trace.set_data((x1_data, y1_data))
     m2_trace.set_data((x2_data, y2_data))
 
+    return m1_trace, m2_trace
+
 ani = matplotlib.animation.FuncAnimation(fig, animate, frames=750) 
 ani.save("double_pen.gif", writer=matplotlib.animation.PillowWriter(fps=25))
 
