@@ -44,6 +44,12 @@ LE2 = smp.diff(L, theta2) - smp.diff(smp.diff(L, theta2_dot), t)
 
 sols = smp.solve([LE1, LE2], [theta1_ddot, theta2_ddot])
 
+"""
+print(smp.simplify(sols[theta1_ddot]))
+print()
+print(smp.simplify(sols[theta2_ddot]))
+"""
+
 ## Convert to 1st-order ODEs ##
 dz1dt = smp.lambdify((t, m1, m2, L1, L2, g, theta1, theta2, theta1_dot, theta2_dot), 
                        sols[theta1_ddot]) # Angular acceleration as 1st-order
@@ -72,7 +78,7 @@ def dSdt(S, t, m1, m2, L1, L2, g):
     ]
 
 ## ODE solution w/ state function ##
-ans = odeint(dSdt, y0=[2, -2, 1.5, 2],      # (y0) represents the initial S state vector
+ans = odeint(dSdt, y0=[2, -2, 1.5, 2],     # (y0) represents the initial S state vector
              t=t, args=(m1, m2, L1, L2, g))
 
 theta1_data = ans.T[0]                     # (theta1) and (theta2) fuctions of time
@@ -124,8 +130,6 @@ def animate(i):
 
     m1_trace.set_data((x1_data, y1_data))
     m2_trace.set_data((x2_data, y2_data))
-
-    return m1_trace, m2_trace
 
 ani = matplotlib.animation.FuncAnimation(fig, animate, frames=750) 
 ani.save("double_pen.gif", writer=matplotlib.animation.PillowWriter(fps=25))
