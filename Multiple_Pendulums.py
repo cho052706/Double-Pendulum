@@ -8,7 +8,7 @@ from matplotlib.colors import hsv_to_rgb
 
 L1 = 2
 L2 = 2
-N = 5 # Number of simulated pendulums
+N = 10 # Number of simulated pendulums
 
 ## Making a pendulum ##
 class DoublePendulum():
