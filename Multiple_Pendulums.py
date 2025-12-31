@@ -135,6 +135,8 @@ for i,pendulum in enumerate(pends):
     stick2 = ax.add_line(Line2D((0, 0), (0, 0), color=blue, lw=1, zorder=i))
     pendulum.shapes(mass1, mass2, stick1, stick2)
 
+print('Creating animation...')
+
 ## Animation ##
 def animate(i):
     for pendulum in pends:
@@ -145,4 +147,4 @@ plt.rcParams['animation.ffmpeg_path'] = 'C:\\Program Files\\ffmpeg\\ffmpeg-8.0.1
 ani = FuncAnimation(fig, animate, frames=1000)
 ani.save("many.mp4", writer=FFMpegWriter(fps=25, metadata=dict(artist='Cedric Ho')))
 
-print('done :))')
+print('Done')

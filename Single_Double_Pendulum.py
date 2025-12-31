@@ -44,11 +44,6 @@ LE2 = smp.diff(L, theta2) - smp.diff(smp.diff(L, theta2_dot), t)
 
 sols = smp.solve([LE1, LE2], [theta1_ddot, theta2_ddot])
 
-"""
-print(smp.simplify(sols[theta1_ddot]))
-print()
-print(smp.simplify(sols[theta2_ddot]))
-"""
 
 ## Convert to 1st-order ODEs ##
 dz1dt = smp.lambdify((t, m1, m2, L1, L2, g, theta1, theta2, theta1_dot, theta2_dot), 
@@ -62,10 +57,10 @@ dtheta2dt = smp.lambdify(theta2_dot, theta2_dot)
 ### Setting values ###
 m1 = 1
 m2 = 1
-L1 = 1                                    # (ax) might be modified for L1 or L2
+L1 = 1     
 L2 = 1
-t = np.linspace(0, 30, 750)               # For real time use 750 (same for the
-g = 9.81                                  # frames on 129)
+t = np.linspace(0, 30, 750)
+g = 9.81                                  
 
 ## Define state vector ##
 def dSdt(S, t, m1, m2, L1, L2, g):
@@ -108,6 +103,8 @@ m2_trace = ax.add_line(Line2D((0, 0), (0, 0), color='m', lw=0.5, zorder=1))
 x1_data, y1_data = [], []
 x2_data, y2_data = [], []
 
+print('Creating animation...')
+
 ## Animation ##
 def animate(i):
     theta1 = theta1_data[i]
@@ -123,9 +120,9 @@ def animate(i):
     stick1.set_data((0,x1), (0, y1))
     stick2.set_data((x1,x2), (y1, y2))
 
-    x1_data.append(x1)                     # Everything from here to the return statement
-    y1_data.append(y1)                     # should be removed when simulating multiple 
-    x2_data.append(x2)                     # pendelums
+    x1_data.append(x1)             
+    y1_data.append(y1)            
+    x2_data.append(x2)                  
     y2_data.append(y2)
 
     m1_trace.set_data((x1_data, y1_data))
@@ -136,4 +133,4 @@ def animate(i):
 ani = matplotlib.animation.FuncAnimation(fig, animate, frames=750) 
 ani.save("double_pen.gif", writer=matplotlib.animation.PillowWriter(fps=25))
 
-print('done :3c')
+print('Done')
